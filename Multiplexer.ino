@@ -25,6 +25,11 @@ bool signupOK = false;
 
 int count = 0;
 
+#define LED1 "Led1Status"
+#define LED2 "Led2Status"
+#define LED3 "Led3Status"
+#define LED4 "Led4Status"
+
 const int SIG = 2;
 const int EN = 7;
 const int controlPin[4] = {3, 4, 5, 6};
@@ -122,6 +127,31 @@ void channelControl(int relayChannel)
   Serial.println(muxTable[relayChannel][0]);
   // Robojax 16ch relay with multiplexer 20181201
   if (Firebase.ready() && signupOK){
+    if (Firebase.RTDB.getInt(&fbdo, LED1)) {
+      if (fbdo.dataType() == "int") {
+        int intValue = fbdo.intData();
+        Serial.println(intValue);
+      }
+    }
+    if (Firebase.RTDB.getInt(&fbdo, LED2)) {
+      if (fbdo.dataType() == "int") {
+        int intValue = fbdo.intData();
+        Serial.println(intValue);
+      }
+    }
+    if (Firebase.RTDB.getInt(&fbdo, LED3)) {
+      if (fbdo.dataType() == "int") {
+        int intValue = fbdo.intData();
+        Serial.println(intValue);
+      }
+    }
+    if (Firebase.RTDB.getInt(&fbdo, LED4)) {
+      if (fbdo.dataType() == "int") {
+        int intValue = fbdo.intData();
+        Serial.println(intValue);
+      }
+    }
+    /*
     if (Firebase.RTDB.setInt(&fbdo, "Led1Status", count)){
       Serial.println("PASSED");
       Serial.println("PATH: " + fbdo.dataPath());
@@ -159,5 +189,6 @@ void channelControl(int relayChannel)
       Serial.println("REASON: " + fbdo.errorReason());
     }
     count++;
+    */
   }
 }
