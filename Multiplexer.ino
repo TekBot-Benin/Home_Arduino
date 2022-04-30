@@ -16,6 +16,12 @@
 #define API_KEY "AIzaSyAQVAi05r5gw-sBU_dcKLpQsDB6dzA01Ns"
 #define DATABASE_URL "https://maison-connectee-990b6-default-rtdb.europe-west1.firebasedatabase.app/" 
 
+class Led {
+  public:
+    int pin;
+    char *path;
+};
+
 FirebaseData fbdo;
 
 FirebaseAuth auth;
@@ -25,10 +31,10 @@ bool signupOK = false;
 
 int count = 0;
 
-#define LED1 "Led1Status"
-#define LED2 "Led2Status"
-#define LED3 "Led3Status"
-#define LED4 "Led4Status"
+Led led1  = {0, "Led1Status"};
+Led led2  = {1, "Led2Status"};
+Led led3  = {2, "Led3Status"};
+Led led4  = {3, "Led4Status"};
 
 const int SIG = 2;
 const int EN = 7;
@@ -55,6 +61,33 @@ const int muxTable[16][4] = {
   {0,  1,  1,  1}, // 14
   {1,  1,  1,  1}  // 15
 };
+
+void writeOnChannel(int channel, int to_write)
+{
+  digitalWrite(controlPin[0], muxTable[channel][0]);
+  digitalWrite(controlPin[1], muxTable[channel][1]);
+  digitalWrite(controlPin[2], muxTable[channel][2]);
+  digitalWrite(controlPin[3], muxTable[channel][3]);
+  digitalWrite(SIG, to_write);
+}
+
+void LedState (Led led)
+{
+  if (Firebase.RTDB.getInt(&fbdo, led.path)) {
+      if (fbdo.dataType() == "int") {
+        int intValue = fbdo.intData();
+        writeOnChannel(led.pin, intValue);
+      }
+   }
+}
+
+void allLights(void)
+{
+  LedState(led1);
+  LedState(led2);
+  LedState(led3);
+  LedState(led4);
+}
 
 void setWifi() {
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
@@ -100,95 +133,9 @@ void setup() {
   Serial.begin(9600);
 }
 
-void loop() {
-  for (int i = 0; i < 16; i++)
-  {
-
-    channelControl(i);
-
-    delay(loopDelay);
-  }
-  //channelControl(7);
-  Serial.println("===============");
-}
-
-void channelControl(int relayChannel)
+void loop() 
 {
-  digitalWrite(controlPin[0], muxTable[relayChannel][0]);
-  digitalWrite(controlPin[1], muxTable[relayChannel][1]);
-  digitalWrite(controlPin[2], muxTable[relayChannel][2]);
-  digitalWrite(controlPin[3], muxTable[relayChannel][3]);
-
-  Serial.print(relayChannel);
-  Serial.print (": ");
-  Serial.print(muxTable[relayChannel][3]);
-  Serial.print(muxTable[relayChannel][2]);
-  Serial.print(muxTable[relayChannel][1]);
-  Serial.println(muxTable[relayChannel][0]);
-  // Robojax 16ch relay with multiplexer 20181201
   if (Firebase.ready() && signupOK){
-    if (Firebase.RTDB.getInt(&fbdo, LED1)) {
-      if (fbdo.dataType() == "int") {
-        int intValue = fbdo.intData();
-        Serial.println(intValue);
-      }
-    }
-    if (Firebase.RTDB.getInt(&fbdo, LED2)) {
-      if (fbdo.dataType() == "int") {
-        int intValue = fbdo.intData();
-        Serial.println(intValue);
-      }
-    }
-    if (Firebase.RTDB.getInt(&fbdo, LED3)) {
-      if (fbdo.dataType() == "int") {
-        int intValue = fbdo.intData();
-        Serial.println(intValue);
-      }
-    }
-    if (Firebase.RTDB.getInt(&fbdo, LED4)) {
-      if (fbdo.dataType() == "int") {
-        int intValue = fbdo.intData();
-        Serial.println(intValue);
-      }
-    }
-    /*
-    if (Firebase.RTDB.setInt(&fbdo, "Led1Status", count)){
-      Serial.println("PASSED");
-      Serial.println("PATH: " + fbdo.dataPath());
-      Serial.println("TYPE: " + fbdo.dataType());
-    }
-    else {
-      Serial.println("FAILED");
-      Serial.println("REASON: " + fbdo.errorReason());
-    }
-    if (Firebase.RTDB.setInt(&fbdo, "Led2Status", count + 1)){
-      Serial.println("PASSED");
-      Serial.println("PATH: " + fbdo.dataPath());
-      Serial.println("TYPE: " + fbdo.dataType());
-    }
-    else {
-      Serial.println("FAILED");
-      Serial.println("REASON: " + fbdo.errorReason());
-    }
-    if (Firebase.RTDB.setInt(&fbdo, "Led3Status", count + 2)){
-      Serial.println("PASSED");
-      Serial.println("PATH: " + fbdo.dataPath());
-      Serial.println("TYPE: " + fbdo.dataType());
-    }
-    else {
-      Serial.println("FAILED");
-      Serial.println("REASON: " + fbdo.errorReason());
-    }
-    if (Firebase.RTDB.setInt(&fbdo, "Led4Status", count + 3)){
-      Serial.println("PASSED");
-      Serial.println("PATH: " + fbdo.dataPath());
-      Serial.println("TYPE: " + fbdo.dataType());
-    }
-    else {
-      Serial.println("FAILED");
-      Serial.println("REASON: " + fbdo.errorReason());
-    }
-    count++;
-    */
+    allLights();
   }
 }
